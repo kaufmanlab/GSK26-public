@@ -1,0 +1,54 @@
+function output = decodePartialD2S(kinematics, neurons, ROIs, kinematicField, neuralField)
+% Fit instantaneous regression of joint angles with correlation to the ce
+
+% Partiall-ed out decoding, dist2Spout from jointAngles
+nFolds = 5;
+nPartitions = 10;
+
+% Prep for regression
+outcomes = kinematics([kinematics.locked]);
+% Regress distal angles on proximal
+allJoints = cat(1,outcomes.(kinematicField));
+dist2Spout = cat(1, outcomes.dist2Spout);
+dist2Spout = mean(dist2Spout(:,9:12,1),2);
+meanDist2Spout = mean(dist2Spout);
+[~, betas, ~] = ridgeMML(allJoints, dist2Spout, 1);
+% % Get betas and bias for each joint
+% betas = zeros(1,size(allJoints,2));
+% bias = zeros(1,size(allJoints,2));
+% for j = 1:size(allJoints,2)
+%     model = fitrlinear(dist2Spout, allJoints(:,j));
+%     betas(j) = model.Beta;
+%     bias(j) = model.Bias;
+% end
+% Subtract off prediction of each joint from betas
+for tr = 1:length(outcomes)
+    joints = outcomes(tr).(kinematicField);
+    dist = mean(outcomes(tr).dist2Spout(:,9:12,1),2);
+    % Recon dist
+    jointsHat = (dist - meanDist2Spout) * betas;
+    jointsNoDist = joints - jointsHat;
+    % Save
+    outcomes(tr).data = jointsNoDist;
+    outcomes(tr).ogData = joints;
+end
+
+% Format neural
+predictors = neurons([neurons.locked]);
+for tr = 1:length(predictors)
+    predictors(tr).data = predictors(tr).(neuralField)(:,ROIs);
+    predictors(tr).group = outcomes(tr).LR;
+    predictors(tr).trialNumber = outcomes(tr).trialNumber;
+end
+
+% PCA step on neural data
+[predictors, aPCs] = pca4Regression(predictors, 0.9, 1, 0);
+
+% cvregress
+output = cvregress(predictors, outcomes, nPartitions, nFolds, 'ridge');
+output.outcomeIndices = cat(1,strrep([['lag1' kinematicField] '%s'], '%s', cellstr(num2str((1:size(outcomes(1).data,2))'))));
+output.PCs = aPCs;
+output.kinematicField = kinematicField;
+output.neuralField = neuralField;
+
+end

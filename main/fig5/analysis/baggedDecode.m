@@ -1,0 +1,38 @@
+function decodeSummary = baggedDecode(decodeSummary, field)
+
+% Gather variables and set params
+nTrials = length(decodeSummary.outcomes);
+testTrials = decodeSummary.trialsTest;
+
+% Reconstruct outcomes
+for tr = 1:nTrials
+    trialNumber = decodeSummary.outcomes(tr).trialNumber;
+    
+    % Check which folds this trial was used in
+    testFolds = cellfun(@(x) any(ismember(x, trialNumber)), testTrials);
+        
+    % Bag the betas
+    meanBetas = mean(cat(3, decodeSummary.betas{testFolds}),3);
+    
+    % Get single trial neural and behavioral field data
+    neuralM = decodeSummary.predictors(tr).data;
+    behavM = decodeSummary.outcomes(tr).data;
+    
+    % Do the regression with baggedBetas
+    %reconData = ((neuralM - neuralMean) * meanBetas) + mean(behavM, 1);
+    reconData = neuralM * meanBetas(2:end, :) + meanBetas(1, :);
+    % Get the variance explained for reconstructed variables
+    reconVE = 1 - var(behavM - reconData, [], 1)./var(behavM, [], 1);
+    
+    % Save for later
+    decodeSummary.outcomes(tr).([field 'Recon']) = reconData;
+    decodeSummary.outcomes(tr).([field 'ReconVE']) = reconVE;
+    decodeSummary.outcomes(tr).([field 'ReconVEMed']) = nanmedian(reconVE);
+    
+    % Reconstruct position
+    if strcmp(field, 'jointAngles')
+        decodeSummary.outcomes(tr).posXYZRecon = forwardKinematics_PD_vAF(decodeSummary.outcomes(tr).posXYZ, decodeSummary.outcomes(tr).jointAnglesRecon);
+    end
+    
+end
+end
