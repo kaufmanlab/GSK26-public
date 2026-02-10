@@ -406,6 +406,9 @@ Loads pre-computed regression outputs (RADICaL rates, joint angles) for M1 and S
 
 ## fig5_analysis.m (Script)
 
+**Note**: Before running this script, run the script loadLockSave.mat to create the
+multiple different locked datasets required for this script
+
 Runs all regression analyses with `rng(240926)` for reproducibility. Six model configurations:
 1. Instantaneous — same-time neural-to-kinematic regression
 2. Proximal-distal partial — removes mutual proximal/distal correlations
