@@ -1,6 +1,6 @@
 ## Mouse sensorimotor cortex reflects complex kinematic details during reaching and grasping
 
-This repository contains code to recreate the figures associated with the manuscript by Grier, Salimian and Kaufman published at eLife.
+This repository contains code to recreate the figures associated with the manuscript by Grier, Salimian and Kaufman published at eLife: https://elifesciences.org/articles/106270.
 
 For orientation to the repository, see docs/SUMMARY.md and docs/QUICK_REFERENCE.md
 
