@@ -40,8 +40,8 @@ function output = cvRegress(predictors, outcomes, nPartitions, nFolds, regType, 
 %
 % Notes:
 % - Performs an nPartitions × nFolds cross-validation, e.g. 10×5 = 50 total fits.
-% - Each fold holds out 1/nFolds of trials for testing (e.g., 20% for 5 folds).
-% - Default is 80/20 train/test
+% - Each fold holds out 1/nPartitions of trials for testing (e.g., 20% for 5 partitions).
+% - Default is 90/10 train/test
 
 %% Arguments
 
